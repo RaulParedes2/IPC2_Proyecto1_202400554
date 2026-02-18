@@ -50,9 +50,8 @@ namespace IPC2_Proyecto1
             while (actual != null)
             {
                 if (actual.Fila == fila && actual.Columna == columnna)
-                {
                     return true;
-                }
+                
                 actual = actual.Siguiente;
             }
             return false;
