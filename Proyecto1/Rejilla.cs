@@ -9,7 +9,8 @@ namespace IPC2_Proyecto1
 
         public int Tamanio
         {
-            set{
+            set
+            {
                 tamanio = value;
             }
 
@@ -41,20 +42,20 @@ namespace IPC2_Proyecto1
         {
             int contador = 0;
 
-            for(int i = -1; i <= 1; i++)
+            for (int i = -1; i <= 1; i++)
             {
-                for(int j = -1; j <= 1; j++)
+                for (int j = -1; j <= 1; j++)
                 {
-                    if(i==0 && j == 0)
-                   continue;
+                    if (i == 0 && j == 0)
+                        continue;
 
-                   int nuevaFila = fila+i;
-                   int nuevaColumna = columna+j;
+                    int nuevaFila = fila + i;
+                    int nuevaColumna = columna + j;
 
-                   if(nuevaFila >=1 && nuevaFila<=Tamanio && 
-                    nuevaColumna >=1 && nuevaColumna <= tamanio)
+                    if (nuevaFila >= 1 && nuevaFila <= Tamanio &&
+                     nuevaColumna >= 1 && nuevaColumna <= tamanio)
                     {
-                        if(Celdas.Existe(nuevaFila, nuevaColumna))
+                        if (Celdas.Existe(nuevaFila, nuevaColumna))
                         {
                             contador++;
                         }
@@ -71,22 +72,22 @@ namespace IPC2_Proyecto1
 
             NodoCelda actual = Celdas.Cabeza;
 
-            while(actual != null)
+            while (actual != null)
             {
                 EvaluarCelda(actual.Fila, actual.Columna, nuevaLista, evaluadas);
 
-                for(int i = -1; i <= 1; i++)
+                for (int i = -1; i <= 1; i++)
                 {
-                    for(int j = -1; j <=1; j++)
+                    for (int j = -1; j <= 1; j++)
                     {
-                        if(i==0 && j==0)
-                        continue;
+                        if (i == 0 && j == 0)
+                            continue;
 
                         int nuevaFila = actual.Fila + i;
                         int nuevaColumna = actual.Columna + j;
 
-                        if(nuevaFila >= 1 && nuevaFila <=Tamanio
-                        && nuevaColumna >= 1 && nuevaColumna <=tamanio)
+                        if (nuevaFila >= 1 && nuevaFila <= Tamanio
+                        && nuevaColumna >= 1 && nuevaColumna <= tamanio)
                         {
                             EvaluarCelda(nuevaFila, nuevaColumna, nuevaLista, evaluadas);
                         }
@@ -99,8 +100,8 @@ namespace IPC2_Proyecto1
 
         public void EvaluarCelda(int fila, int columna, ListaCelda nuevaLista, ListaCelda evaluadas)
         {
-            if(evaluadas.Existe(fila,columna))
-            return;
+            if (evaluadas.Existe(fila, columna))
+                return;
 
             evaluadas.Insertar(fila, columna);
 
@@ -109,7 +110,7 @@ namespace IPC2_Proyecto1
 
             if (estaContagiada)
             {
-                if(vecinos == 2 || vecinos == 3)
+                if (vecinos == 2 || vecinos == 3)
                 {
                     nuevaLista.Insertar(fila, columna);
                 }
@@ -122,6 +123,84 @@ namespace IPC2_Proyecto1
                 }
             }
         }
-         
+        public ListaCelda CopiarEsatdo()
+        {
+            ListaCelda copia = new ListaCelda();
+            NodoCelda actual = Celdas.Cabeza;
+
+            while (actual != null)
+            {
+                copia.Insertar(actual.Fila, actual.Columna);
+                actual = actual.Siguiente;
+            }
+            return copia;
+        }
+
+        private bool SonIguales(ListaCelda a, ListaCelda b)
+        {
+            NodoCelda actualA = a.Cabeza;
+
+            while (actualA != null)
+            {
+                if (!b.Existe(actualA.Fila, actualA.Columna))
+                    return false;
+
+                actualA = actualA.Siguiente;
+            }
+
+            NodoCelda actualB = b.Cabeza;
+
+            while (actualB != null)
+            {
+                if (!a.Existe(actualB.Fila, actualB.Columna))
+                    return false;
+
+                actualB = actualB.Siguiente;
+            }
+
+            return true;
+        }
+
+        public string Simular(int maxPeriodos)
+        {
+            ListaEstado historial = new ListaEstado();
+            historial.Insertar(CopiarEsatdo(), 0);
+
+            for (int periodo = 1; periodo <= maxPeriodos; periodo++)
+            {
+                EjecutarPeriodo();
+
+                NodoEstado actualEstado = historial.Cabeza;
+
+                while (actualEstado != null)
+                {
+                    if (SonIguales(Celdas, actualEstado.Estado))
+                    {
+                        int N = actualEstado.Periodo;
+                        int N1 = periodo - actualEstado.Periodo;
+
+                        if (N == 0)
+                        {
+                            if (N == 1)
+                                return "Mortal(N = 1)";
+                            else
+                                return "Grave(N =" + periodo + ")";
+                        }
+                        else
+                        {
+                            if (N1 == 1)
+                            {
+                                return "Mortal (N=" + N + "N1=1)";
+                            }
+                            else
+                                return "Grave(N= " + N + ")";
+                        }
+                    }
+                    actualEstado = actualEstado.Siguiente;
+                }
+                historial.Insertar(CopiarEsatdo(), periodo);
+            }
+            return "Leve";
+        }
     }
 }
