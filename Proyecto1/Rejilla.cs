@@ -161,7 +161,7 @@ namespace IPC2_Proyecto1
             return true;
         }
 
-        public string Simular(int maxPeriodos)
+        public ResultadoSimulacion Simular(int maxPeriodos)
         {
             ListaEstado historial = new ListaEstado();
             historial.Insertar(CopiarEsatdo(), 0);
@@ -179,28 +179,37 @@ namespace IPC2_Proyecto1
                         int N = actualEstado.Periodo;
                         int N1 = periodo - actualEstado.Periodo;
 
-                        if (N == 0)
+                        if (N == 1)
                         {
-                            if (N == 1)
-                                return "Mortal(N = 1)";
-                            else
-                                return "Grave(N =" + periodo + ")";
+                            return new ResultadoSimulacion
+                            {
+                              Tipo = "mortal",
+                              N = N,
+                              N1 = 1  
+                            };
                         }
                         else
                         {
-                            if (N1 == 1)
-                            {
-                                return "Mortal (N=" + N + "N1=1)";
-                            }
-                            else
-                                return "Grave(N= " + N + ")";
+                           return new ResultadoSimulacion
+                           {
+                               Tipo = "grave",
+                               N = N,
+                               N1 = N1
+                           };
                         }
                     }
                     actualEstado = actualEstado.Siguiente;
                 }
                 historial.Insertar(CopiarEsatdo(), periodo);
             }
-            return "Leve";
+            return new ResultadoSimulacion
+            {
+              Tipo = "leve",
+              N = 0,
+              N1 = 0
+
+            };
         }
     }
+    
 }
