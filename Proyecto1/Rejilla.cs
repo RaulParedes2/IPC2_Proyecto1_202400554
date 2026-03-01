@@ -163,12 +163,16 @@ namespace IPC2_Proyecto1
 
         public ResultadoSimulacion Simular(int maxPeriodos)
         {
+            if (maxPeriodos > 10000)
+                maxPeriodos = 10000;
+
             ListaEstado historial = new ListaEstado();
             historial.Insertar(CopiarEsatdo(), 0);
 
             for (int periodo = 1; periodo <= maxPeriodos; periodo++)
             {
                 EjecutarPeriodo();
+                MostrarEstadisticas(periodo);
 
                 NodoEstado actualEstado = historial.Cabeza;
 
@@ -179,37 +183,51 @@ namespace IPC2_Proyecto1
                         int N = actualEstado.Periodo;
                         int N1 = periodo - actualEstado.Periodo;
 
-                        if (N == 1)
+                        if (N1 == 1)
                         {
                             return new ResultadoSimulacion
                             {
-                              Tipo = "mortal",
-                              N = N,
-                              N1 = 1  
+                                Tipo = "mortal",
+                                N = N,
+                                N1 = 1
                             };
                         }
                         else
                         {
-                           return new ResultadoSimulacion
-                           {
-                               Tipo = "grave",
-                               N = N,
-                               N1 = N1
-                           };
+                            return new ResultadoSimulacion
+                            {
+                                Tipo = "grave",
+                                N = N,
+                                N1 = N1
+                            };
                         }
                     }
+
                     actualEstado = actualEstado.Siguiente;
                 }
+
                 historial.Insertar(CopiarEsatdo(), periodo);
             }
+
             return new ResultadoSimulacion
             {
-              Tipo = "leve",
-              N = 0,
-              N1 = 0
-
+                Tipo = "leve",
+                N = 0,
+                N1 = 0
             };
         }
+
+        public void MostrarEstadisticas(int periodo)
+{
+    int contagiadas = Celdas.Contar();
+    int total = M * M;
+    int sanas = total - contagiadas;
+
+    Console.WriteLine("Periodo: " + periodo);
+    Console.WriteLine("Células contagiadas: " + contagiadas);
+    Console.WriteLine("Células sanas: " + sanas);
+    Console.WriteLine("---------------------------------");
+}
     }
-    
+
 }
