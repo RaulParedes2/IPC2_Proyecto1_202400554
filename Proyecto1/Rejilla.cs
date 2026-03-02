@@ -1,4 +1,6 @@
 using System.ComponentModel;
+using System.IO;
+using System.Diagnostics;
 
 namespace IPC2_Proyecto1
 {
@@ -123,7 +125,7 @@ namespace IPC2_Proyecto1
                 }
             }
         }
-        public ListaCelda CopiarEsatdo()
+        public ListaCelda CopiarEstado()
         {
             ListaCelda copia = new ListaCelda();
             NodoCelda actual = Celdas.Cabeza;
@@ -166,38 +168,54 @@ namespace IPC2_Proyecto1
             if (maxPeriodos > 10000)
                 maxPeriodos = 10000;
 
+            // Guardamos el estado inicial en el historial (periodo 0)
             ListaEstado historial = new ListaEstado();
-            historial.Insertar(CopiarEsatdo(), 0);
+            historial.Insertar(CopiarEstado(), 0);
 
             for (int periodo = 1; periodo <= maxPeriodos; periodo++)
             {
+                // Ejecuta siguiente generación
                 EjecutarPeriodo();
+
+                // (Opcional) Mostrar estadísticas
                 MostrarEstadisticas(periodo);
 
+                // Recorremos el historial para ver si el patrón ya existía
                 NodoEstado actualEstado = historial.Cabeza;
 
                 while (actualEstado != null)
                 {
-                    if (SonIguales(Celdas, actualEstado.Estado))
+                    if (SonIguales(celdas, actualEstado.Estado))
                     {
-                        int N = actualEstado.Periodo;
-                        int N1 = periodo - actualEstado.Periodo;
+                        int periodoAnterior = actualEstado.Periodo;
+                        int diferencia = periodo - periodoAnterior;
 
-                        if (N1 == 1)
+                        // =========================
+                        // CASO A: volvió al patrón inicial
+                        // =========================
+                        if (periodoAnterior == 0)
                         {
+                            int N = periodo;
+
                             return new ResultadoSimulacion
                             {
-                                Tipo = "mortal",
+                                Tipo = (N == 1) ? "mortal" : "grave",
                                 N = N,
-                                N1 = 1
+                                N1 = 0
                             };
                         }
+
+                        // =========================
+                        // CASO B: patrón distinto al inicial
+                        // =========================
                         else
                         {
+                            int N1 = diferencia;
+
                             return new ResultadoSimulacion
                             {
-                                Tipo = "grave",
-                                N = N,
+                                Tipo = (N1 == 1) ? "mortal" : "grave",
+                                N = 0,
                                 N1 = N1
                             };
                         }
@@ -206,7 +224,80 @@ namespace IPC2_Proyecto1
                     actualEstado = actualEstado.Siguiente;
                 }
 
-                historial.Insertar(CopiarEsatdo(), periodo);
+                // Si no se repitió, lo agregamos al historial
+                historial.Insertar(CopiarEstado(), periodo);
+            }
+
+            // =========================
+            // CASO C: nunca se repitió
+            // =========================
+            return new ResultadoSimulacion
+            {
+                Tipo = "leve",
+                N = 0,
+                N1 = 0
+            };
+        }
+
+
+        public ResultadoSimulacion SimularPasoAPaso(int maxPeriodos, string nombrePaciente = "Paciente")
+        {
+            if (maxPeriodos > 10000)
+                maxPeriodos = 10000;
+
+            ListaEstado historial = new ListaEstado();
+            historial.Insertar(CopiarEstado(), 0);
+            GraficarMatriz("Periodo_0", nombrePaciente);
+
+
+
+
+            for (int periodo = 1; periodo <= maxPeriodos; periodo++)
+            {
+                EjecutarPeriodo();
+
+                MostrarEstadisticas(periodo);
+
+                //  Graficar cada periodo
+                GraficarMatriz("Periodo_" + periodo, nombrePaciente);
+
+                NodoEstado actualEstado = historial.Cabeza;
+
+                while (actualEstado != null)
+                {
+                    if (SonIguales(celdas, actualEstado.Estado))
+                    {
+                        int periodoAnterior = actualEstado.Periodo;
+                        int diferencia = periodo - periodoAnterior;
+
+                        if (periodoAnterior == 0)
+                        {
+                            int N = periodo;
+
+                            return new ResultadoSimulacion
+                            {
+                                Tipo = (N == 1) ? "mortal" : "grave",
+                                N = N,
+                                N1 = 0
+                            };
+                        }
+                        else
+                        {
+                            int N1 = diferencia;
+
+                            return new ResultadoSimulacion
+                            {
+                                Tipo = (N1 == 1) ? "mortal" : "grave",
+                                N = 0,
+                                N1 = N1
+                            };
+                        }
+                    }
+
+                    actualEstado = actualEstado.Siguiente;
+                }
+
+                historial.Insertar(CopiarEstado(), periodo);
             }
 
             return new ResultadoSimulacion
@@ -217,17 +308,94 @@ namespace IPC2_Proyecto1
             };
         }
 
-        public void MostrarEstadisticas(int periodo)
-{
-    int contagiadas = Celdas.Contar();
-    int total = M * M;
-    int sanas = total - contagiadas;
+        public void GraficarMatriz(string nombreArchivo, string nombrePaciente)
+        {
+            string carpeta = "Graphviz";
 
-    Console.WriteLine("Periodo: " + periodo);
-    Console.WriteLine("Células contagiadas: " + contagiadas);
-    Console.WriteLine("Células sanas: " + sanas);
-    Console.WriteLine("---------------------------------");
-}
+            if (!Directory.Exists(carpeta))
+                Directory.CreateDirectory(carpeta);
+
+            string nombreLimpio = nombrePaciente.Replace(" ", "_");
+            string rutaDot = Path.Combine(carpeta, nombreLimpio + "_" + nombreArchivo + ".dot");
+            string rutaPng = Path.Combine(carpeta, nombreLimpio + "_" + nombreArchivo + ".png");
+
+            // Crear el archivo DOT
+            using (StreamWriter writer = new StreamWriter(rutaDot))
+            {
+                writer.WriteLine("digraph G {");
+                writer.WriteLine("node [shape=plaintext];");
+                writer.WriteLine("tabla [label=<");
+                writer.WriteLine("<table border='1' cellborder='1' cellspacing='0'>");
+
+                for (int i = 1; i <= Tamanio; i++)
+                {
+                    writer.WriteLine("<tr>");
+
+                    for (int j = 1; j <= Tamanio; j++)
+                    {
+                        if (Celdas.Existe(i, j))
+                            writer.WriteLine("<td bgcolor='red' width='20' height='20'></td>");
+                        else
+                            writer.WriteLine("<td width='20' height='20'></td>");
+                    }
+
+                    writer.WriteLine("</tr>");
+                }
+
+                writer.WriteLine("</table>");
+                writer.WriteLine(">];");
+                writer.WriteLine("}");
+            }
+
+            Console.WriteLine("Archivo DOT generado: " + rutaDot);
+
+            // Intentar convertir a PNG si Graphviz está instalado
+            try
+            {
+                ProcessStartInfo psi = new ProcessStartInfo();
+                psi.FileName = "dot";
+                psi.Arguments = $"-Tpng \"{rutaDot}\" -o \"{rutaPng}\"";
+                psi.UseShellExecute = false;
+                psi.CreateNoWindow = true;
+                psi.RedirectStandardOutput = true;
+                psi.RedirectStandardError = true;
+
+                using (Process process = Process.Start(psi))
+                {
+                    if (process != null)
+                    {
+                        process.WaitForExit();
+
+                        if (process.ExitCode == 0)
+                        {
+                            Console.WriteLine("✅ Imagen PNG generada: " + rutaPng);
+                        }
+                        else
+                        {
+                            string error = process.StandardError.ReadToEnd();
+                            Console.WriteLine("❌ Error al generar PNG: " + error);
+                        }
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine("⚠️  No se pudo generar la imagen PNG. Asegúrate de tener Graphviz instalado.");
+                Console.WriteLine("   Puedes instalar Graphviz desde: https://graphviz.org/download/");
+                Console.WriteLine("   Archivo DOT disponible en: " + rutaDot);
+            }
+        }
+        public void MostrarEstadisticas(int periodo)
+        {
+            int contagiadas = celdas.Contar();
+            int total = Tamanio * Tamanio;
+            int sanas = total - contagiadas;
+
+            Console.WriteLine("Periodo: " + periodo);
+            Console.WriteLine("Células contagiadas: " + contagiadas);
+            Console.WriteLine("Células sanas: " + sanas);
+            Console.WriteLine("---------------------------------");
+        }
     }
 
 }

@@ -62,5 +62,10 @@ namespace IPC2_Proyecto1
         {
             Cabeza = null;
         }
+
+        public bool EstaVacia()
+        {
+            return Cabeza == null;
+        }
     }
 }

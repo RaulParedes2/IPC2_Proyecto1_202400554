@@ -1,0 +1,27 @@
+<pacientes> 
+<paciente> 
+<datospersonales> 
+<nombre>nos1</nombre> 
+<edad>20</edad> 
+</datospersonales> 
+<periodos>5</periodos> 
+<m>10</m> 
+<rejilla> 
+<celda f="1" c="6"/> 
+<celda f="2" c="6"/> 
+<celda f="3" c="6"/> 
+<celda f="7" c="5"/> 
+<celda f="8" c="5"/> 
+<celda f="9" c="5"/> 
+<celda f="5" c="1"/> 
+<celda f="5" c="2"/> 
+<celda f="5" c="3"/> 
+<celda f="5" c="8"/> 
+<celda f="5" c="9"/> 
+<celda f="5" c="10"/> 
+</rejilla> 
+</paciente> 
+<paciente> 
+.... 
+</paciente> 
+</pacientes>

@@ -43,24 +43,45 @@ namespace IPC2_Proyecto1
             }
 
         }
-        public bool Existe(int fila, int columnna)
+        public bool Existe(int fila, int columna)
         {
             NodoCelda actual = cabeza;
 
             while (actual != null)
             {
-                if (actual.Fila == fila && actual.Columna == columnna)
+                if (actual.Fila == fila && actual.Columna == columna)
                     return true;
-                
+
                 actual = actual.Siguiente;
             }
             return false;
         }
+
+        public int Contar()
+        {
+            int contador = 0;
+            NodoCelda actual = Cabeza;
+
+            while (actual != null)
+            {
+                contador++;
+                actual = actual.Siguiente;
+            }
+
+            return contador;
+        }
+
+        
         public void Limpiar()
         {
             cabeza = null;
         }
+
+
+
     }
+
+
 
 
 }

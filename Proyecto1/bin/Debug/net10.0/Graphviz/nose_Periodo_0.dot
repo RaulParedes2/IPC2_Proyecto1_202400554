@@ -1,0 +1,127 @@
+digraph G {
+node [shape=plaintext];
+tabla [label=<
+<table border='1' cellborder='1' cellspacing='0'>
+<tr>
+<td width='20' height='20'></td>
+<td width='20' height='20'></td>
+<td width='20' height='20'></td>
+<td width='20' height='20'></td>
+<td width='20' height='20'></td>
+<td width='20' height='20'></td>
+<td width='20' height='20'></td>
+<td width='20' height='20'></td>
+<td width='20' height='20'></td>
+<td width='20' height='20'></td>
+</tr>
+<tr>
+<td width='20' height='20'></td>
+<td width='20' height='20'></td>
+<td width='20' height='20'></td>
+<td width='20' height='20'></td>
+<td bgcolor='red' width='20' height='20'></td>
+<td bgcolor='red' width='20' height='20'></td>
+<td bgcolor='red' width='20' height='20'></td>
+<td width='20' height='20'></td>
+<td width='20' height='20'></td>
+<td width='20' height='20'></td>
+</tr>
+<tr>
+<td width='20' height='20'></td>
+<td width='20' height='20'></td>
+<td width='20' height='20'></td>
+<td width='20' height='20'></td>
+<td width='20' height='20'></td>
+<td width='20' height='20'></td>
+<td width='20' height='20'></td>
+<td width='20' height='20'></td>
+<td width='20' height='20'></td>
+<td width='20' height='20'></td>
+</tr>
+<tr>
+<td width='20' height='20'></td>
+<td bgcolor='red' width='20' height='20'></td>
+<td width='20' height='20'></td>
+<td width='20' height='20'></td>
+<td width='20' height='20'></td>
+<td width='20' height='20'></td>
+<td width='20' height='20'></td>
+<td width='20' height='20'></td>
+<td width='20' height='20'></td>
+<td width='20' height='20'></td>
+</tr>
+<tr>
+<td width='20' height='20'></td>
+<td bgcolor='red' width='20' height='20'></td>
+<td width='20' height='20'></td>
+<td width='20' height='20'></td>
+<td width='20' height='20'></td>
+<td width='20' height='20'></td>
+<td width='20' height='20'></td>
+<td width='20' height='20'></td>
+<td width='20' height='20'></td>
+<td width='20' height='20'></td>
+</tr>
+<tr>
+<td width='20' height='20'></td>
+<td bgcolor='red' width='20' height='20'></td>
+<td width='20' height='20'></td>
+<td width='20' height='20'></td>
+<td width='20' height='20'></td>
+<td width='20' height='20'></td>
+<td width='20' height='20'></td>
+<td width='20' height='20'></td>
+<td width='20' height='20'></td>
+<td width='20' height='20'></td>
+</tr>
+<tr>
+<td width='20' height='20'></td>
+<td width='20' height='20'></td>
+<td width='20' height='20'></td>
+<td width='20' height='20'></td>
+<td width='20' height='20'></td>
+<td width='20' height='20'></td>
+<td width='20' height='20'></td>
+<td width='20' height='20'></td>
+<td width='20' height='20'></td>
+<td width='20' height='20'></td>
+</tr>
+<tr>
+<td width='20' height='20'></td>
+<td width='20' height='20'></td>
+<td width='20' height='20'></td>
+<td bgcolor='red' width='20' height='20'></td>
+<td bgcolor='red' width='20' height='20'></td>
+<td bgcolor='red' width='20' height='20'></td>
+<td width='20' height='20'></td>
+<td width='20' height='20'></td>
+<td width='20' height='20'></td>
+<td width='20' height='20'></td>
+</tr>
+<tr>
+<td width='20' height='20'></td>
+<td width='20' height='20'></td>
+<td width='20' height='20'></td>
+<td width='20' height='20'></td>
+<td width='20' height='20'></td>
+<td width='20' height='20'></td>
+<td width='20' height='20'></td>
+<td width='20' height='20'></td>
+<td width='20' height='20'></td>
+<td width='20' height='20'></td>
+</tr>
+<tr>
+<td width='20' height='20'></td>
+<td width='20' height='20'></td>
+<td width='20' height='20'></td>
+<td width='20' height='20'></td>
+<td width='20' height='20'></td>
+<td width='20' height='20'></td>
+<td width='20' height='20'></td>
+<td width='20' height='20'></td>
+<td width='20' height='20'></td>
+<td width='20' height='20'></td>
+</tr>
+</table>
+>];
+}
