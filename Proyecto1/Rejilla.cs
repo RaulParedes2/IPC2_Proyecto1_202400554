@@ -55,7 +55,7 @@ namespace IPC2_Proyecto1
                     int nuevaColumna = columna + j;
 
                     if (nuevaFila >= 1 && nuevaFila <= Tamanio &&
-                     nuevaColumna >= 1 && nuevaColumna <= tamanio)
+                     nuevaColumna >= 1 && nuevaColumna <= Tamanio)
                     {
                         if (Celdas.Existe(nuevaFila, nuevaColumna))
                         {
@@ -163,14 +163,19 @@ namespace IPC2_Proyecto1
             return true;
         }
 
-        public ResultadoSimulacion Simular(int maxPeriodos)
+        public ResultadoSimulacion Simular(int maxPeriodos, string nombrePaciente = "Paciente")
         {
             if (maxPeriodos > 10000)
                 maxPeriodos = 10000;
 
-            // Guardamos el estado inicial en el historial (periodo 0)
+            // Guardamos el estado inicial 
             ListaEstado historial = new ListaEstado();
+            ListaCelda estadoInicial = CopiarEstado();
             historial.Insertar(CopiarEstado(), 0);
+
+            Console.WriteLine("\n=== PATRÓN INICIAL (Período 0) ===");
+            this.GraficarMatriz("Periodo_0", nombrePaciente);
+            MostrarEstadisticas(0);
 
             for (int periodo = 1; periodo <= maxPeriodos; periodo++)
             {
@@ -182,13 +187,17 @@ namespace IPC2_Proyecto1
 
                 // Recorremos el historial para ver si el patrón ya existía
                 NodoEstado actualEstado = historial.Cabeza;
+                ListaCelda estadoActual = CopiarEstado(); //para copiar y comparar
 
                 while (actualEstado != null)
                 {
-                    if (SonIguales(celdas, actualEstado.Estado))
+                    if (SonIguales(estadoActual, actualEstado.Estado))
                     {
                         int periodoAnterior = actualEstado.Periodo;
                         int diferencia = periodo - periodoAnterior;
+
+                        Console.WriteLine($"\n=== PATRÓN FINAL (Período {periodo}) ===");
+                        this.GraficarMatriz("Periodo_" + periodo, nombrePaciente);
 
                         // =========================
                         // CASO A: volvió al patrón inicial
@@ -196,6 +205,7 @@ namespace IPC2_Proyecto1
                         if (periodoAnterior == 0)
                         {
                             int N = periodo;
+                            Console.WriteLine($" El patrón inicial se repitió después de {N} períodos.");
 
                             return new ResultadoSimulacion
                             {
@@ -211,6 +221,7 @@ namespace IPC2_Proyecto1
                         else
                         {
                             int N1 = diferencia;
+                            Console.WriteLine($" Nuevo patrón encontrado en período {periodoAnterior} que se repite cada {N1} períodos.");
 
                             return new ResultadoSimulacion
                             {
@@ -231,6 +242,9 @@ namespace IPC2_Proyecto1
             // =========================
             // CASO C: nunca se repitió
             // =========================
+            Console.WriteLine($"\n=== LÍMITE ALCANZADO: {maxPeriodos} períodos ===");
+            Console.WriteLine("No se encontraron patrones repetidos - ENFERMEDAD LEVE");
+            this.GraficarMatriz("Periodo_" + maxPeriodos, nombrePaciente);
             return new ResultadoSimulacion
             {
                 Tipo = "leve",
@@ -246,33 +260,42 @@ namespace IPC2_Proyecto1
                 maxPeriodos = 10000;
 
             ListaEstado historial = new ListaEstado();
+            ListaCelda estadoInicial = CopiarEstado();
             historial.Insertar(CopiarEstado(), 0);
-            GraficarMatriz("Periodo_0", nombrePaciente);
 
+            Console.WriteLine("\n=== PATRÓN INICIAL (Período 0) ===");
+            this.GraficarMatriz("Periodo_0", nombrePaciente);
+            MostrarEstadisticas(0);
 
-
+            /*
+            Console.WriteLine("Presione Enter para continuar al siguiente período...");
+            Console.ReadLine();
+            */
 
             for (int periodo = 1; periodo <= maxPeriodos; periodo++)
             {
+                Console.WriteLine($"\n=== PERÍODO {periodo} ===");
                 EjecutarPeriodo();
-
                 MostrarEstadisticas(periodo);
+                this.GraficarMatriz("Periodo_" + periodo, nombrePaciente);
 
-                //  Graficar cada periodo
-                GraficarMatriz("Periodo_" + periodo, nombrePaciente);
 
                 NodoEstado actualEstado = historial.Cabeza;
+                ListaCelda estadoActual = CopiarEstado();
 
                 while (actualEstado != null)
                 {
-                    if (SonIguales(celdas, actualEstado.Estado))
+                    if (SonIguales(estadoActual, actualEstado.Estado))
                     {
                         int periodoAnterior = actualEstado.Periodo;
                         int diferencia = periodo - periodoAnterior;
 
+                        Console.WriteLine($"\n Patrón repetido encontrado");
+
                         if (periodoAnterior == 0)
                         {
                             int N = periodo;
+                            Console.WriteLine($"El patrón inicial se repitió después de {N} períodos.");
 
                             return new ResultadoSimulacion
                             {
@@ -284,6 +307,7 @@ namespace IPC2_Proyecto1
                         else
                         {
                             int N1 = diferencia;
+                            Console.WriteLine($"Nuevo patrón encontrado en período {periodoAnterior} que se repite cada {N1} períodos.");
 
                             return new ResultadoSimulacion
                             {
@@ -298,7 +322,17 @@ namespace IPC2_Proyecto1
                 }
 
                 historial.Insertar(CopiarEstado(), periodo);
+                /*
+                if (periodo < maxPeriodos)
+                {
+                    Console.WriteLine("Presione Enter para continuar al siguiente período...");
+                    Console.ReadLine();
+                }
+                */
             }
+
+            Console.WriteLine($"\n=== LÍMITE ALCANZADO: {maxPeriodos} períodos ===");
+            Console.WriteLine("No se encontraron patrones repetidos  - ENFERMEDAD LEVE.");
 
             return new ResultadoSimulacion
             {
@@ -308,6 +342,7 @@ namespace IPC2_Proyecto1
             };
         }
 
+        // En Rejilla.cs - ÚNICO método de graficación
         public void GraficarMatriz(string nombreArchivo, string nombrePaciente)
         {
             string carpeta = "Graphviz";
@@ -327,13 +362,13 @@ namespace IPC2_Proyecto1
                 writer.WriteLine("tabla [label=<");
                 writer.WriteLine("<table border='1' cellborder='1' cellspacing='0'>");
 
-                for (int i = 1; i <= Tamanio; i++)
+                for (int i = 1; i <= this.Tamanio; i++)
                 {
                     writer.WriteLine("<tr>");
 
-                    for (int j = 1; j <= Tamanio; j++)
+                    for (int j = 1; j <= this.Tamanio; j++)
                     {
-                        if (Celdas.Existe(i, j))
+                        if (this.Celdas.Existe(i, j))
                             writer.WriteLine("<td bgcolor='red' width='20' height='20'></td>");
                         else
                             writer.WriteLine("<td width='20' height='20'></td>");
@@ -347,9 +382,7 @@ namespace IPC2_Proyecto1
                 writer.WriteLine("}");
             }
 
-            Console.WriteLine("Archivo DOT generado: " + rutaDot);
-
-            // Intentar convertir a PNG si Graphviz está instalado
+            // Convertir a PNG
             try
             {
                 ProcessStartInfo psi = new ProcessStartInfo();
@@ -368,21 +401,20 @@ namespace IPC2_Proyecto1
 
                         if (process.ExitCode == 0)
                         {
-                            Console.WriteLine("✅ Imagen PNG generada: " + rutaPng);
+                            Console.WriteLine($" Imagen generada: {rutaPng}");
+                            File.Delete(rutaDot); // Eliminar .dot
                         }
                         else
                         {
                             string error = process.StandardError.ReadToEnd();
-                            Console.WriteLine("❌ Error al generar PNG: " + error);
+                            Console.WriteLine($" Error al generar PNG: {error}");
                         }
                     }
                 }
             }
             catch (Exception ex)
             {
-                Console.WriteLine("⚠️  No se pudo generar la imagen PNG. Asegúrate de tener Graphviz instalado.");
-                Console.WriteLine("   Puedes instalar Graphviz desde: https://graphviz.org/download/");
-                Console.WriteLine("   Archivo DOT disponible en: " + rutaDot);
+                Console.WriteLine($" No se pudo generar PNG. Archivo DOT: {rutaDot}");
             }
         }
         public void MostrarEstadisticas(int periodo)
