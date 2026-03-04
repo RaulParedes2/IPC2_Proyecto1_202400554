@@ -171,80 +171,78 @@ namespace IPC2_Proyecto1
             // Guardamos el estado inicial 
             ListaEstado historial = new ListaEstado();
             ListaCelda estadoInicial = CopiarEstado();
-            historial.Insertar(CopiarEstado(), 0);
-
-            Console.WriteLine("\n=== PATRÓN INICIAL (Período 0) ===");
-            this.GraficarMatriz("Periodo_0", nombrePaciente);
-            MostrarEstadisticas(0);
+            historial.Insertar(estadoInicial, 0);
 
             for (int periodo = 1; periodo <= maxPeriodos; periodo++)
             {
                 // Ejecuta siguiente generación
                 EjecutarPeriodo();
+                ListaCelda estadoActual = CopiarEstado();
 
-                // (Opcional) Mostrar estadísticas
-                MostrarEstadisticas(periodo);
+                //Guardar en historial
+                historial.Insertar(estadoActual, periodo);
 
-                // Recorremos el historial para ver si el patrón ya existía
+                // Buscar patrones (excluyendo el período actual)
                 NodoEstado actualEstado = historial.Cabeza;
-                ListaCelda estadoActual = CopiarEstado(); //para copiar y comparar
 
                 while (actualEstado != null)
                 {
-                    if (SonIguales(estadoActual, actualEstado.Estado))
+                    // No comparar con el mismo período
+                    if (actualEstado.Periodo != periodo)
                     {
-                        int periodoAnterior = actualEstado.Periodo;
-                        int diferencia = periodo - periodoAnterior;
-
-                        Console.WriteLine($"\n=== PATRÓN FINAL (Período {periodo}) ===");
-                        this.GraficarMatriz("Periodo_" + periodo, nombrePaciente);
-
-                        // =========================
-                        // CASO A: volvió al patrón inicial
-                        // =========================
-                        if (periodoAnterior == 0)
+                        if (SonIguales(estadoActual, actualEstado.Estado))
                         {
-                            int N = periodo;
-                            Console.WriteLine($" El patrón inicial se repitió después de {N} períodos.");
+                            int periodoAnterior = actualEstado.Periodo;
+                            int diferencia = periodo - periodoAnterior;
 
-                            return new ResultadoSimulacion
+                            Console.WriteLine($"\n=== PATRÓN ENCONTRADO en período {periodo} (igual al período {periodoAnterior}) ===");
+                            this.GraficarMatriz("Periodo_" + periodo, nombrePaciente);
+                            MostrarEstadisticas(periodo);
+
+                            // CASO A: volvió al patrón inicial
+                            if (periodoAnterior == 0)
                             {
-                                Tipo = (N == 1) ? "mortal" : "grave",
-                                N = N,
-                                N1 = 0
-                            };
-                        }
-
-                        // =========================
-                        // CASO B: patrón distinto al inicial
-                        // =========================
-                        else
-                        {
-                            int N1 = diferencia;
-                            Console.WriteLine($" Nuevo patrón encontrado en período {periodoAnterior} que se repite cada {N1} períodos.");
-
-                            return new ResultadoSimulacion
+                                int N = periodo;
+                                Console.WriteLine($" El patrón inicial se repitió después de {N} períodos.");
+                                return new ResultadoSimulacion
+                                {
+                                    Tipo = (N == 1) ? "mortal" : "grave",
+                                    N = N,
+                                    N1 = 0
+                                };
+                            }
+                            // CASO B: patrón distinto al inicial
+                            else
                             {
-                                Tipo = (N1 == 1) ? "mortal" : "grave",
-                                N = 0,
-                                N1 = N1
-                            };
+                                int n1Real = diferencia;
+                                bool esConsistente = VerificarConsistencia(historial, periodoAnterior, diferencia, periodo, estadoActual, ref n1Real);
+
+                                if (esConsistente)
+                                {
+                                    Console.WriteLine($" Nuevo patrón encontrado en período {periodoAnterior} que se repite cada {n1Real} períodos.");
+                                    return new ResultadoSimulacion
+                                    {
+                                        Tipo = (n1Real == 1) ? "mortal" : "grave",
+                                        N = periodoAnterior,
+                                        N1 = n1Real
+                                    };
+                                }
+                                else
+                                {
+                                    Console.WriteLine($"Patrón repetido pero no consistente, continuando búsqueda...");
+                                }
+                            }
                         }
                     }
-
                     actualEstado = actualEstado.Siguiente;
                 }
-
-                // Si no se repitió, lo agregamos al historial
-                historial.Insertar(CopiarEstado(), periodo);
             }
 
-            // =========================
-            // CASO C: nunca se repitió
-            // =========================
-            Console.WriteLine($"\n=== LÍMITE ALCANZADO: {maxPeriodos} períodos ===");
-            Console.WriteLine("No se encontraron patrones repetidos - ENFERMEDAD LEVE");
+            Console.WriteLine($"\n=== PATRÓN FINAL (Período {maxPeriodos}) ===");
             this.GraficarMatriz("Periodo_" + maxPeriodos, nombrePaciente);
+            MostrarEstadisticas(maxPeriodos);
+            Console.WriteLine("No se encontraron patrones repetidos - ENFERMEDAD LEVE");
+
             return new ResultadoSimulacion
             {
                 Tipo = "leve",
@@ -252,8 +250,6 @@ namespace IPC2_Proyecto1
                 N1 = 0
             };
         }
-
-
         public ResultadoSimulacion SimularPasoAPaso(int maxPeriodos, string nombrePaciente = "Paciente")
         {
             if (maxPeriodos > 10000)
@@ -261,27 +257,44 @@ namespace IPC2_Proyecto1
 
             ListaEstado historial = new ListaEstado();
             ListaCelda estadoInicial = CopiarEstado();
-            historial.Insertar(CopiarEstado(), 0);
+            historial.Insertar(estadoInicial, 0);
 
             Console.WriteLine("\n=== PATRÓN INICIAL (Período 0) ===");
             this.GraficarMatriz("Periodo_0", nombrePaciente);
             MostrarEstadisticas(0);
+            Console.WriteLine("----------------------------------------");
 
-            /*
-            Console.WriteLine("Presione Enter para continuar al siguiente período...");
-            Console.ReadLine();
-            */
+            // Variables para almacenar el resultado final
+            string tipoResultado = "leve";
+            int nEncontrado = 0;
+            int n1Encontrado = 0;
 
             for (int periodo = 1; periodo <= maxPeriodos; periodo++)
             {
                 Console.WriteLine($"\n=== PERÍODO {periodo} ===");
+
+                // Ejecutar siguiente generación
                 EjecutarPeriodo();
+                
+                ListaCelda estadoActual = CopiarEstado();
+
+                // PRIMERO: Guardar en historial
+                historial.Insertar(estadoActual, periodo);
+
+                // DESPUÉS: Buscar patrones
+                NodoEstado actualEstado = historial.Cabeza;
+
+                // Mostrar estadísticas
                 MostrarEstadisticas(periodo);
+
+                // Generar gráfica
                 this.GraficarMatriz("Periodo_" + periodo, nombrePaciente);
 
+                Console.WriteLine("----------------------------------------");
 
-                NodoEstado actualEstado = historial.Cabeza;
-                ListaCelda estadoActual = CopiarEstado();
+                // Verificar si hay patrones repetidos
+                //NodoEstado actualEstado = historial.Cabeza;
+                //ListaCelda estadoActual = CopiarEstado();
 
                 while (actualEstado != null)
                 {
@@ -290,56 +303,169 @@ namespace IPC2_Proyecto1
                         int periodoAnterior = actualEstado.Periodo;
                         int diferencia = periodo - periodoAnterior;
 
-                        Console.WriteLine($"\n Patrón repetido encontrado");
+                        Console.WriteLine($"\n ANÁLISIS: Se encontró un patrón repetido!");
 
                         if (periodoAnterior == 0)
                         {
-                            int N = periodo;
-                            Console.WriteLine($"El patrón inicial se repitió después de {N} períodos.");
+                            // Caso A: Repetición del patrón inicial
+                            nEncontrado = periodo;
+                            n1Encontrado = 0;
 
-                            return new ResultadoSimulacion
+                            if (nEncontrado == 1)
                             {
-                                Tipo = (N == 1) ? "mortal" : "grave",
-                                N = N,
-                                N1 = 0
-                            };
+                                tipoResultado = "mortal";
+                                Console.WriteLine($" El patrón inicial se repite en cada período - ENFERMEDAD MORTAL");
+                            }
+                            else
+                            {
+                                tipoResultado = "grave";
+                                Console.WriteLine($" El patrón inicial se repite cada {nEncontrado} períodos - ENFERMEDAD GRAVE");
+                            }
+
+                            // IMPORTANTE: Salir del while pero continuar la simulación
+                            break;
                         }
                         else
                         {
-                            int N1 = diferencia;
-                            Console.WriteLine($"Nuevo patrón encontrado en período {periodoAnterior} que se repite cada {N1} períodos.");
+                            // Caso B: Repetición de otro patrón
+                            // Verificar si la repetición es consistente
+                            int n1Real = diferencia;
+                            bool esConsistente = VerificarConsistencia(historial, periodoAnterior, diferencia, periodo, estadoActual, ref n1Real);
 
-                            return new ResultadoSimulacion
+                            if (esConsistente)
                             {
-                                Tipo = (N1 == 1) ? "mortal" : "grave",
-                                N = 0,
-                                N1 = N1
-                            };
+                                nEncontrado = periodoAnterior;
+                                n1Encontrado = n1Real;
+
+                                if (n1Encontrado == 1)
+                                {
+                                    tipoResultado = "mortal";
+                                    Console.WriteLine($"Patrón del período {nEncontrado} se repite en cada período - ENFERMEDAD MORTAL");
+                                }
+                                else
+                                {
+                                    tipoResultado = "grave";
+                                    Console.WriteLine($"Patrón del período {nEncontrado} se repite cada {n1Encontrado} períodos - ENFERMEDAD GRAVE");
+                                }
+
+                                break;
+                            }
+                            else
+                            {
+                                Console.WriteLine($"Patrón repetido pero no consistente, continuando búsqueda...");
+                            }
                         }
                     }
-
                     actualEstado = actualEstado.Siguiente;
                 }
 
+                // Guardar este período en el historial
                 historial.Insertar(CopiarEstado(), periodo);
-                /*
-                if (periodo < maxPeriodos)
-                {
-                    Console.WriteLine("Presione Enter para continuar al siguiente período...");
-                    Console.ReadLine();
-                }
-                */
+
+                Console.WriteLine("----------------------------------------");
             }
 
-            Console.WriteLine($"\n=== LÍMITE ALCANZADO: {maxPeriodos} períodos ===");
-            Console.WriteLine("No se encontraron patrones repetidos  - ENFERMEDAD LEVE.");
+            // Mostrar resumen final
+            Console.WriteLine("\n========== RESUMEN FINAL ==========");
+            Console.WriteLine($"Períodos simulados: {maxPeriodos}");
+            Console.WriteLine($"Resultado: {tipoResultado}");
+
+            if (tipoResultado != "leve")
+            {
+                if (n1Encontrado == 0)
+                {
+                    Console.WriteLine($"El patrón inicial se repite cada {nEncontrado} períodos");
+                }
+                else
+                {
+                    Console.WriteLine($"Patrón encontrado en período {nEncontrado} que se repite cada {n1Encontrado} períodos");
+                }
+            }
+            else
+            {
+                Console.WriteLine("No se encontraron patrones repetidos - ENFERMEDAD LEVE");
+            }
+            Console.WriteLine("====================================\n");
 
             return new ResultadoSimulacion
             {
-                Tipo = "leve",
-                N = 0,
-                N1 = 0
+                Tipo = tipoResultado,
+                N = nEncontrado,
+                N1 = n1Encontrado
             };
+        }
+
+        // Método auxiliar para verificar consistencia - VERSIÓN CORREGIDA
+        private bool VerificarConsistencia(ListaEstado historial, int periodoInicio, int intervalo, int periodoActual, ListaCelda patron, ref int n1Real)
+        {
+            // Primero, verificar si se repite CADA período (intervalo = 1)
+            bool repiteCada1 = true;
+
+            // Verificar que TODOS los períodos desde periodoInicio+1 hasta periodoActual
+            // sean IGUALES al patrón
+            for (int p = periodoInicio + 1; p <= periodoActual; p++)
+            {
+                bool encontrado = false;
+                NodoEstado nodo = historial.Cabeza;
+
+                while (nodo != null)
+                {
+                    if (nodo.Periodo == p)
+                    {
+                        // Si el período p NO es igual al patrón, ya no es consistente
+                        if (!SonIguales(patron, nodo.Estado))
+                        {
+                            repiteCada1 = false;
+                            break;
+                        }
+                        encontrado = true;
+                        break;
+                    }
+                    nodo = nodo.Siguiente;
+                }
+
+                // Si no se encontró el período en el historial, no es consistente
+                if (!encontrado)
+                {
+                    repiteCada1 = false;
+                    break;
+                }
+
+                if (!repiteCada1) break;
+            }
+
+            if (repiteCada1)
+            {
+                n1Real = 1;
+                return true;
+            }
+
+            // Si no se repite cada 1, verificar con el intervalo original
+            for (int p = periodoInicio + intervalo; p <= periodoActual; p += intervalo)
+            {
+                bool encontrado = false;
+                NodoEstado nodo = historial.Cabeza;
+
+                while (nodo != null)
+                {
+                    if (nodo.Periodo == p)
+                    {
+                        if (!SonIguales(patron, nodo.Estado))
+                        {
+                            return false;
+                        }
+                        encontrado = true;
+                        break;
+                    }
+                    nodo = nodo.Siguiente;
+                }
+
+                if (!encontrado)
+                    return false;
+            }
+
+            n1Real = intervalo;
+            return true;
         }
 
         // En Rejilla.cs - ÚNICO método de graficación

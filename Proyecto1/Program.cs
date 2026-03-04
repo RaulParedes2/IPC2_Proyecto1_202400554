@@ -72,28 +72,37 @@ namespace IPC2_Proyecto1
 
                             if (seleccionado != null)
                             {
-                                // MOSTRAR PATRÓN INICIAL ANTES DE SIMULAR
-                                Console.WriteLine($"\n=== Mostrando patrón inicial del paciente {seleccionado.Nombre} ===");
-                                seleccionado.Rejilla.MostrarEstadisticas(0);
-                                seleccionado.Rejilla.GraficarMatriz("Periodo_0", seleccionado.Nombre);
+                                //CREAR UNA COPIA DE LA REJILLA PARA SIMULAR
+                                Rejilla rejillaSimulacion = new Rejilla(seleccionado.M);
 
+                                // Copiar las celdas contagiadas del original
+                                NodoCelda original = seleccionado.Rejilla.Celdas.Cabeza;
+                                while (original != null)
+                                {
+                                    rejillaSimulacion.Celdas.Insertar(original.Fila, original.Columna);
+                                    original = original.Siguiente;
+                                }
 
+                                // MOSTRAR PATRÓN INICIAL
+                                Console.WriteLine($"\n=== PATRÓN INICIAL del paciente {seleccionado.Nombre} ===");
+                                rejillaSimulacion.MostrarEstadisticas(0);
+                                rejillaSimulacion.GraficarMatriz("Periodo_0", seleccionado.Nombre);
 
-                                // SIMULAR (AHORA PASA EL NOMBRE DEL PACIENTE)
+                                Console.WriteLine("\n--- Simulando... ---\n");
+
+                                // SIMULAR usando la copia
                                 seleccionado.Resultado =
-                                    seleccionado.Rejilla.Simular(seleccionado.Periodos, seleccionado.Nombre);
+                                    rejillaSimulacion.Simular(seleccionado.Periodos, seleccionado.Nombre);
 
                                 Console.WriteLine("\n=== RESULTADO FINAL ===");
                                 Console.WriteLine("Resultado: " + seleccionado.Resultado.Tipo);
 
-                                // Mostrar N solo si NO es leve
                                 if (seleccionado.Resultado.Tipo != "leve")
                                 {
                                     Console.WriteLine("N: " + seleccionado.Resultado.N);
                                     if (seleccionado.Resultado.N1 > 0)
                                         Console.WriteLine("N1: " + seleccionado.Resultado.N1);
                                 }
-                                // Si es leve, NO se muestra N ni N1 (como en el enunciado)
                             }
                             else
                             {
@@ -104,8 +113,8 @@ namespace IPC2_Proyecto1
                         {
                             Console.WriteLine("Entrada inválida.");
                         }
-
                         break;
+
                     case "4":
                         if (pacientes.EstaVacia())
                         {
@@ -121,42 +130,43 @@ namespace IPC2_Proyecto1
 
                             if (seleccionado != null)
                             {
-                                Console.WriteLine($"\n=== Simulación PASO A PASO AUTOMÁTICA ===");
+                                // CREAR UNA COPIA DE LA REJILLA PARA SIMULAR PASO A PASO
+                                Rejilla rejillaSimulacion = new Rejilla(seleccionado.M);
+
+                                // Copiar las celdas contagiadas del original
+                                NodoCelda original = seleccionado.Rejilla.Celdas.Cabeza;
+                                while (original != null)
+                                {
+                                    rejillaSimulacion.Celdas.Insertar(original.Fila, original.Columna);
+                                    original = original.Siguiente;
+                                }
+
+                                Console.WriteLine($"\n=== Simulación PASO A PASO ===");
                                 Console.WriteLine($"Paciente: {seleccionado.Nombre}");
                                 Console.WriteLine($"Períodos a simular: {seleccionado.Periodos}");
-                                Console.WriteLine("Se generarán imágenes para CADA período automáticamente.\n");
+                                Console.WriteLine("Generando imágenes para CADA período...\n");
 
-                                // MOSTRAR PATRÓN INICIAL
-                                Console.WriteLine($"\n=== PATRÓN INICIAL (Período 0) del paciente {seleccionado.Nombre} ===");
-                                seleccionado.Rejilla.MostrarEstadisticas(0);
-                                seleccionado.Rejilla.GraficarMatriz("Periodo_0", seleccionado.Nombre);
-
-                                
-
-                                // SIMULAR PASO A PASO (AHORA AUTOMÁTICO)
+                                // SIMULAR PASO A PASO usando la copia
                                 seleccionado.Resultado =
-                                    seleccionado.Rejilla.SimularPasoAPaso(seleccionado.Periodos, seleccionado.Nombre);
+                                    rejillaSimulacion.SimularPasoAPaso(seleccionado.Periodos, seleccionado.Nombre);
 
-                                Console.WriteLine("\n=== RESULTADO FINAL ===");
-                                Console.WriteLine("Resultado: " + seleccionado.Resultado.Tipo);
+                                Console.WriteLine("\n Simulación completada.");
+                                Console.WriteLine($"Resultado final: {seleccionado.Resultado.Tipo}");
 
-                                // Mostrar N solo si NO es leve
                                 if (seleccionado.Resultado.Tipo != "leve")
                                 {
-                                    Console.WriteLine("N: " + seleccionado.Resultado.N);
+                                    Console.WriteLine($"N: {seleccionado.Resultado.N}");
                                     if (seleccionado.Resultado.N1 > 0)
-                                        Console.WriteLine("N1: " + seleccionado.Resultado.N1);
+                                        Console.WriteLine($"N1: {seleccionado.Resultado.N1}");
                                 }
-                                // Si es leve, NO se muestra N ni N1
 
-                                Console.WriteLine($"\n✅ Simulación completada. Revisa la carpeta 'Graphviz' para ver todas las imágenes generadas.");
+                                Console.WriteLine($"\n Revisa la carpeta 'Graphviz' para ver las imágenes generadas.");
                             }
                             else
                             {
                                 Console.WriteLine("Paciente no válido.");
                             }
                         }
-                        
                         break;
 
                     case "5":
@@ -290,36 +300,54 @@ namespace IPC2_Proyecto1
 
                     pacienteElem.AppendChild(datosPersonales);
 
+                    // PERIODOS (faltaba)
+                    XmlElement periodos = doc.CreateElement("periodos");
+                    periodos.InnerText = p.Periodos.ToString();
+                    pacienteElem.AppendChild(periodos);
+
+                    // M (faltaba)
+                    XmlElement m = doc.CreateElement("m");
+                    m.InnerText = p.M.ToString();
+                    pacienteElem.AppendChild(m);
+
                     // Resultado
                     XmlElement resultado = doc.CreateElement("resultado");
-                    resultado.InnerText = p.Resultado.Tipo; // "leve", "grave" o "mortal"
+                    resultado.InnerText = p.Resultado.Tipo.ToUpper(); // Convierte a mayúsculas
                     pacienteElem.AppendChild(resultado);
 
-                    // Para casos GRAVE o MORTAL, incluir N (y N1 si aplica)
-                    if (p.Resultado.Tipo == "grave" || p.Resultado.Tipo == "mortal")
+                    // N (si existe y es > 0)
+                    if (p.Resultado.N > 0)
                     {
-                        // N siempre debe ir para grave/mortal (según el enunciado)
                         XmlElement n = doc.CreateElement("n");
                         n.InnerText = p.Resultado.N.ToString();
                         pacienteElem.AppendChild(n);
-
-                        // N1 solo si es > 0 (para casos donde se repite un patrón distinto al inicial)
-                        if (p.Resultado.N1 > 0)
-                        {
-                            XmlElement n1 = doc.CreateElement("n1");
-                            n1.InnerText = p.Resultado.N1.ToString();
-                            pacienteElem.AppendChild(n1);
-                        }
                     }
-                    // Para caso LEVE, NO se incluyen N ni N1 (como en el ejemplo del enunciado)
+
+                    // N1 (si existe y es > 0)
+                    if (p.Resultado.N1 > 0)
+                    {
+                        XmlElement n1 = doc.CreateElement("n1");
+                        n1.InnerText = p.Resultado.N1.ToString();
+                        pacienteElem.AppendChild(n1);
+                    }
 
                     pacientesElem.AppendChild(pacienteElem);
                 }
 
                 actual = actual.Siguiente;
             }
+            // Guardar con formato bonito
+            XmlWriterSettings settings = new XmlWriterSettings();
+            settings.Indent = true;
+            settings.IndentChars = "    "; // 4 espacios para indentación
+            settings.Encoding = System.Text.Encoding.UTF8;
 
-            doc.Save(ruta);
+            using (XmlWriter writer = XmlWriter.Create(ruta, settings))
+            {
+                doc.Save(writer);
+            }
+
+            /*doc.Save(ruta);*/
             Console.WriteLine($" Archivo XML generado correctamente en: {ruta}");
         }
         static void LeerEntrada(string rutaArchivo)
