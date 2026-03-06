@@ -2,9 +2,23 @@ namespace IPC2_Proyecto1
 {
     public class NodoEstado
     {
+
+        private int periodo;
         public ListaCelda Estado;
-        public int Periodo;
+        
         public NodoEstado Siguiente;
+
+        public int Periodo
+        {
+            set
+            {
+                periodo = value;
+            }
+            get
+            {
+                return periodo;
+            }
+        }
 
         public NodoEstado(ListaCelda estado, int periodo){
 
