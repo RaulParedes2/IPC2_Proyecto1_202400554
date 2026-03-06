@@ -264,6 +264,9 @@ namespace IPC2_Proyecto1
             MostrarEstadisticas(0);
             Console.WriteLine("----------------------------------------");
 
+            Console.WriteLine("Presione Enter para comenzar la simulación...");
+            Console.ReadLine();
+
             // Variables para almacenar el resultado final
             string tipoResultado = "leve";
             int nEncontrado = 0;
@@ -275,7 +278,7 @@ namespace IPC2_Proyecto1
 
                 // Ejecutar siguiente generación
                 EjecutarPeriodo();
-                
+
                 ListaCelda estadoActual = CopiarEstado();
 
                 // PRIMERO: Guardar en historial
@@ -363,6 +366,12 @@ namespace IPC2_Proyecto1
                 historial.Insertar(CopiarEstado(), periodo);
 
                 Console.WriteLine("----------------------------------------");
+              //*
+                if (periodo < maxPeriodos)
+                {
+                    Console.WriteLine("Presione Enter para ver el siguiente período...");
+                    Console.ReadLine();
+                }
             }
 
             // Mostrar resumen final
@@ -387,6 +396,10 @@ namespace IPC2_Proyecto1
             }
             Console.WriteLine("====================================\n");
 
+            /*Console.WriteLine("Simulación completada. Presione Enter para continuar...");
+            Console.ReadLine();*/
+
+
             return new ResultadoSimulacion
             {
                 Tipo = tipoResultado,
@@ -395,7 +408,7 @@ namespace IPC2_Proyecto1
             };
         }
 
-        // Método auxiliar para verificar consistencia - VERSIÓN CORREGIDA
+        // Método auxiliar para verificar consistencia 
         private bool VerificarConsistencia(ListaEstado historial, int periodoInicio, int intervalo, int periodoActual, ListaCelda patron, ref int n1Real)
         {
             // Primero, verificar si se repite CADA período (intervalo = 1)

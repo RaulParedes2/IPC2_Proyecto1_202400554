@@ -1,14 +1,64 @@
+using System.Data.SqlTypes;
+
 namespace IPC2_Proyecto1
 {
     public class Paciente
     {
-        public string Nombre;
-        public int Edad;
-        public int Periodos;
-        public int M;
+        private string nombre;
+        private int edad;
+        private int periodo;
+        private int m;
         public Rejilla Rejilla;
         public ResultadoSimulacion Resultado;
 
+        public string Nombre
+        {
+            set
+            {
+                nombre = value;
+            }
+            get
+            {
+                return nombre;
+            }
+        }
+
+        public int Edad
+        {
+            set
+            {
+                edad = value;
+            }
+            get
+            {
+                return edad;
+            }
+        }
+
+
+        public int Periodos {
+            set
+            {
+                 periodo= value;
+            }
+            get
+            {
+                return periodo;
+            }
+        }
+
+        public int M
+        {
+            set
+            {
+                m = value;
+            }
+            get
+            {
+                return m;
+            }
+        }
+        
         
         public Rejilla CopiarRejilla()
         {

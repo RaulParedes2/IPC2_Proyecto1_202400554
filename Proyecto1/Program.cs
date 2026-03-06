@@ -27,26 +27,68 @@ namespace IPC2_Proyecto1
                 Console.WriteLine("5. Limpiar memoria");
                 Console.WriteLine("6. Generar XML Final");
                 Console.WriteLine("7. Salir");
-                Console.Write("Seleccione una opción: ");
+                Console.WriteLine("----------------------------------------------");
+                Console.Write("Seleccione una opción: " );
 
                 string opcion = Console.ReadLine();
 
                 switch (opcion)
                 {
+
                     case "1":
-                        if (!Directory.Exists(carpetaEntrada))
+                        Console.Write("Ingrese el nombre del archivo XML (ej: entrada.xml): ");
+                        string? nombreArchivo = Console.ReadLine();
+
+                        if (string.IsNullOrWhiteSpace(nombreArchivo))
                         {
-                            Console.WriteLine("La carpeta Entradas no existe.");
+                            Console.WriteLine(" Nombre de archivo inválido.");
+                            break;
                         }
-                        else if (!File.Exists(rutaEntrada))
+
+                        // Asegurar que tenga extensión .xml
+                        if (!nombreArchivo.EndsWith(".xml", StringComparison.OrdinalIgnoreCase))
                         {
-                            Console.WriteLine("No se encontró el archivo entrada.xml");
+                            nombreArchivo += ".xml";
+                        }
+
+                        string carpetaEntradaArchivos = "Entradas";
+                        string rutaEntrada2 = Path.Combine(carpetaEntradaArchivos, nombreArchivo);
+
+                        if (!Directory.Exists(carpetaEntradaArchivos))
+                        {
+                            Console.WriteLine($"La carpeta '{carpetaEntradaArchivos}' no existe.");
+                            Console.WriteLine("   Creando carpeta...");
+                            Directory.CreateDirectory(carpetaEntradaArchivos);
+                            Console.WriteLine($"   Por favor, coloque el archivo '{nombreArchivo}' en la carpeta '{carpetaEntradaArchivos}'");
+                        }
+                        else if (!File.Exists(rutaEntrada2))
+                        {
+                            Console.WriteLine($" No se encontró el archivo '{nombreArchivo}' en la carpeta '{carpetaEntradaArchivos}'");
+                            Console.WriteLine("   Archivos disponibles:");
+
+                            string[] archivos = Directory.GetFiles(carpetaEntradaArchivos, "*.xml");
+                            if (archivos.Length == 0)
+                            {
+                                Console.WriteLine("   No hay archivos XML en la carpeta.");
+                            }
+                            else
+                            {
+                                foreach (string archivo in archivos)
+                                {
+                                    Console.WriteLine($"   - {Path.GetFileName(archivo)}");
+                                }
+                            }
                         }
                         else
                         {
-                            LeerEntrada(rutaEntrada);
+                            Console.WriteLine($"\n Cargando archivo: {nombreArchivo}");
+                            LeerEntrada(rutaEntrada2);
                         }
+
+                        /*Console.WriteLine("\nPresione Enter para continuar...");
+                        Console.ReadLine();*/
                         break;
+
 
                     case "2":
                         if (pacientes.EstaVacia())
@@ -56,6 +98,7 @@ namespace IPC2_Proyecto1
                         }
                         pacientes.Mostrar();
                         break;
+
 
                     case "3":
                         if (pacientes.EstaVacia())
@@ -115,6 +158,8 @@ namespace IPC2_Proyecto1
                         }
                         break;
 
+
+
                     case "4":
                         if (pacientes.EstaVacia())
                         {
@@ -169,6 +214,7 @@ namespace IPC2_Proyecto1
                         }
                         break;
 
+
                     case "5":
                         pacientes.Limpiar();
                         Console.WriteLine("Memoria limpiada.");
@@ -184,6 +230,7 @@ namespace IPC2_Proyecto1
                         break;
 
                     case "7":
+                        Console.WriteLine("Saliendo...");
                         return;
 
                     default:
@@ -207,55 +254,6 @@ namespace IPC2_Proyecto1
             }
             Console.WriteLine("------------------------");
         }
-        /*
-                static void GenerarXML(string nombre, int edad, int periodos, int m, ResultadoSimulacion resultado)
-                {
-                    string carpeta = "Salidas";
-
-                    if (!Directory.Exists(carpeta))
-                    {
-                        Directory.CreateDirectory(carpeta);
-                    }
-                    //Limpieza de los nombre
-
-                    string nombreLimpio = nombre.Replace(" ", " _");
-                    string fechaHora = DateTime.Now.ToString("yyyy-MM-dd_HH-mm-ss");
-                    string nombreArchivo = nombreLimpio + "_" + fechaHora + ".xml";
-                    string ruta = Path.Combine(carpeta, nombreArchivo);
-
-                    XmlWriterSettings settings = new XmlWriterSettings();
-                    settings.Indent = true;
-
-                    using (XmlWriter writer = XmlWriter.Create(ruta, settings))
-                    {
-                        writer.WriteStartDocument();
-                        writer.WriteStartElement("Pacinetes");
-
-                        writer.WriteStartElement("paciente");
-
-                        writer.WriteStartElement("datospersonales");
-                        writer.WriteElementString("nombre", nombre);
-                        writer.WriteElementString("edad", edad.ToString());
-                        writer.WriteEndElement();
-
-                        writer.WriteElementString("Periodos", periodos.ToString());
-                        writer.WriteElementString("m", m.ToString());
-                        writer.WriteElementString("resultado", resultado.Tipo);
-
-                        if (resultado.Tipo != "Leve")
-                            writer.WriteElementString("n", resultado.N.ToString());
-
-                        if (resultado.N1 > 0)
-                            writer.WriteElementString("n1", resultado.N1.ToString());
-
-                        writer.WriteEndElement(); //Paciente
-                        writer.WriteEndElement(); //pacientes
-                        writer.WriteEndDocument();
-
-                    }
-                    Console.WriteLine("XML generado en: " + ruta);
-
-                }*/
 
         static void GenerarXMLFinal(string ruta)
         {
@@ -391,10 +389,15 @@ namespace IPC2_Proyecto1
                     Console.WriteLine($"Los períodos del paciente {nombre} son inválidos.");
                     continue;
                 }
+                Console.WriteLine($"\n Paciente: {nombre}");
+                Console.WriteLine($"   Tamaño de matriz: {m} x {m}");
+                Console.WriteLine($"   Total de celdas: {m * m}");
 
                 Rejilla rejilla = new Rejilla(m);
 
                 XmlNodeList? celdas = paciente.SelectNodes("rejilla/celda");
+                //*
+                int contadorCeldas = 0;
 
                 if (celdas != null)
                 {
@@ -412,9 +415,14 @@ namespace IPC2_Proyecto1
                         if (fila >= 1 && fila <= m && columna >= 1 && columna <= m)
                         {
                             rejilla.Celdas.Insertar(fila, columna);
+                            contadorCeldas++;
                         }
                     }
                 }
+                //*x
+                Console.WriteLine($"   Células contagiadas iniciales: {contadorCeldas}");
+                Console.WriteLine($"   Células sanas iniciales: {m * m - contadorCeldas}");
+                Console.WriteLine("----------------------------------------");
 
                 Paciente nuevo = new Paciente();
                 nuevo.Nombre = nombre;
@@ -426,109 +434,18 @@ namespace IPC2_Proyecto1
                 pacientes.Insertar(nuevo);
             }
 
-            Console.WriteLine("Pacientes cargados correctamente.");
+            Console.WriteLine($"\n Pacientes cargados correctamente Total: {ContarPacientes()}.");
         }
-
-        /*
-        static void GenerarDotMatriz(string nombreArchivo, string nombrePaciente)
+        static int ContarPacientes()
         {
-            string carpeta = "Graphviz";
-
-            if (!Directory.Exists(carpeta))
-                Directory.CreateDirectory(carpeta);
-
-            string nombreLimpio = nombrePaciente.Replace(" ", "_");
-            string rutaDot = Path.Combine(carpeta, nombreLimpio + "_" + nombreArchivo + ".dot");
-            string rutaPng = Path.Combine(carpeta, nombreLimpio + "_" + nombreArchivo + ".png");
-
-            using (StreamWriter writer = new StreamWriter(rutaDot))
+            int contador = 0;
+            NodoPaciente actual = pacientes.Cabeza;
+            while (actual != null)
             {
-                writer.WriteLine("digraph G {");
-                writer.WriteLine("node [shape=plaintext];");
-                writer.WriteLine("tabla [label=<");
-                writer.WriteLine("<table border='1' cellborder='1' cellspacing='0'>");
-
-                for (int i = 1; i <= this.Tamanio; i++)
-                {
-                    writer.WriteLine("<tr>");
-
-                    for (int j = 1; j <= this.Tamanio; j++)
-                    {
-                        if (this.Celdas.Existe(i, j))
-                            writer.WriteLine("<td bgcolor='red' width='20' height='20'></td>");
-                        else
-                            writer.WriteLine("<td width='20' height='20'></td>");
-                    }
-
-                    writer.WriteLine("</tr>");
-                }
-
-                writer.WriteLine("</table>");
-                writer.WriteLine(">];");
-                writer.WriteLine("}");
+                contador++;
+                actual = actual.Siguiente;
             }
-
-            Console.WriteLine("Generando imagen PNG...");
-
-            // Intentar convertir a PNG si Graphviz está instalado
-            try
-            {
-                ProcessStartInfo psi = new ProcessStartInfo();
-                psi.FileName = "dot";
-                psi.Arguments = $"-Tpng \"{rutaDot}\" -o \"{rutaPng}\"";
-                psi.UseShellExecute = false;
-                psi.CreateNoWindow = true;
-                psi.RedirectStandardOutput = true;
-                psi.RedirectStandardError = true;
-
-                using (Process process = Process.Start(psi))
-                {
-                    if (process != null)
-                    {
-                        process.WaitForExit();
-
-                        if (process.ExitCode == 0)
-                        {
-                            Console.WriteLine($" Imagen generada: {rutaPng}");
-
-                            // OPCIONAL: Eliminar el archivo .dot después de generar el PNG
-                            try
-                            {
-                                File.Delete(rutaDot);
-                                // Console.WriteLine("Archivo .dot eliminado temporal.");
-                            }
-                            catch
-                            {
-                                // Si no se puede eliminar, no importa
-                            }
-                        }
-                        else
-                        {
-                            string error = process.StandardError.ReadToEnd();
-                            Console.WriteLine($" Error al generar PNG: {error}");
-                            Console.WriteLine($"   Archivo DOT disponible en: {rutaDot}");
-                        }
-                    }
-                }
-            }
-            catch (Exception ex)
-            {
-                Console.WriteLine("  No se pudo generar la imagen PNG. Asegúrate de tener Graphviz instalado.");
-                Console.WriteLine("   Puedes instalar Graphviz desde: https://graphviz.org/download/");
-                Console.WriteLine($"   Archivo DOT disponible en: {rutaDot}");
-            }
-
-            // Convertir automáticamente a PNG
-             ProcessStartInfo psi = new ProcessStartInfo();
-             psi.FileName = "dot";
-             psi.Arguments = $"-Tpng \"{rutaDot}\" -o \"{rutaPng}\"";
-             psi.UseShellExecute = false;
-             psi.CreateNoWindow = true;
-
-             Process.Start(psi).WaitForExit();
-
-             Console.WriteLine("Imagen generada en: " + rutaPng);
-             
-        }*/
+            return contador;
+        }
     }
 }
